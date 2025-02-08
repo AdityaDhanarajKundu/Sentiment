@@ -1,3 +1,4 @@
+import os
 from flask import Flask, request, jsonify
 from utils.model_loader import load_sentiment_model
 from utils.data_preprocessor import preprocess_text
@@ -5,9 +6,16 @@ from utils.data_preprocessor import preprocess_text
 # Initialize Flask app
 app = Flask(__name__)
 
-# Load the sentiment model
-sentiment_pipeline = load_sentiment_model()
-print("Model loaded successfully!")
+# Lazy load sentiment model to reduce memory usage
+sentiment_pipeline = None
+
+# Function to load the sentiment model
+def get_sentiment_model():
+    global sentiment_pipeline
+    if sentiment_pipeline is None:
+        sentiment_pipeline = load_sentiment_model()   # Load the sentiment model
+        print("Model loaded successfully!")
+    return sentiment_pipeline
 
 emotion_labels = [
     "admiration", "amusement", "anger", "annoyance", "approval", "caring", "confusion", "curiosity",
@@ -35,6 +43,8 @@ def analyze_sentiment():
         # Preprocess the input text
         preprocessed_text = preprocess_text(text)
 
+        sentiment_model = get_sentiment_model()
+        
         # Get sentiment predictions
         result = sentiment_pipeline(preprocessed_text)
 
@@ -59,4 +69,5 @@ def analyze_sentiment():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=True)
