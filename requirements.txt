@@ -1,0 +1,6 @@
+flask
+torch
+transformers
+datasets
+scikit-learn
+accelerate>=0.26.0
